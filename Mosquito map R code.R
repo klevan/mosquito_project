@@ -1,0 +1,68 @@
+# the library and data used to make the map
+library(maps)
+library(vegan)
+data(county.fips)
+# If you use the import function on RStudio, you can upload the data into R using the following link:
+# https://raw.githubusercontent.com/klevan/mosquito_project/master/Data/presabs.txt
+# The data should now be found in as an R object called presabs
+
+# We are building our map based on a template map of New Jersey counties
+map("county","new jersey", col = "gray", fill = TRUE, resolution = 0,lty = 1, projection = "polyconic")
+
+# First, we will create statistics from our raw values
+fips<-presabs[,1] # The ID code for each county
+rich<-rowSums(presabs[,c(2:65)]) # Mosquito (raw) species richness values
+H<-diversity(presabs[,c(2:65)]) # Shannon H diversity index
+Albopictus<-presabs[,3]/rich # The proportional abundance of Aedes albopictus
+mosquito<-cbind(fips,rich,H,Albopictus) # A new array with our data
+
+
+# For each map we will define colors & use the cut function to make catergories defined by color
+# Next, we match up the county code (and corresponding spatial shape) to each value in our array
+# Finally, we map the result.
+
+# Map 1: Mosquito Richness
+# define color buckets 
+colors = c("#F1EEF6", "#D4B9DA", "#C994C7", "#DF65B0", "#DD1C77")
+mosquito$colorBuckets <- as.numeric(cut(rich, c(25, 30, 35, 40, 45, 60)))
+leg.txt <- c("<30", "30-35", "35-40", "40-45", ">45")
+
+# draw map
+map("county", "new jersey", col = colors[mosquito$colorBuckets], fill = TRUE, resolution = 0,
+    lty = 0, projection = "polyconic")
+map("county","new jersey", col = "white", fill = FALSE, add = TRUE, lty = 1, lwd = 0.2,
+    projection="polyconic", boundary=TRUE)
+title("Mosquito richness")
+legend("bottom", leg.txt, horiz = TRUE, fill = colors, cex=1)
+
+
+
+# Map 2: Proportional abundance of Aedes albopictus
+# define color buckets 
+colors = c("#F1EEF6", "#D4B9DA", "#C994C7", "#DF65B0", "#DD1C77")
+mosquito$colorBuckets <- as.numeric(cut(Albopictus, c(-0.1, 0.014, 0.021, 0.025, 0.028, 0.036)))
+leg.txt <- c("< 0.014", "0.014 - 0.021", "0.021 - 0.025", "0.025 - 0.028", "> 0.028")
+
+# draw map
+map("county", "new jersey", col = colors[mosquito$colorBuckets], fill = TRUE, resolution = 0,
+    lty = 0, projection = "polyconic")
+map("county","new jersey", col = "white", fill = FALSE, add = TRUE, lty = 1, lwd = 0.2,
+    projection="polyconic", boundary=TRUE)
+title("Proportional abundance of Aedes albopictus")
+legend("bottom", leg.txt, horiz = TRUE, fill = colors, cex=1)
+
+
+# Map 3: Shannon Diversity
+# define color buckets 
+colors = c("#F1EEF6", "#D4B9DA", "#C994C7", "#DF65B0", "#DD1C77")
+mosquito$colorBuckets <- as.numeric(cut(H, c(3.3, 3.5, 3.6, 3.7, 3.8, 4.0)))
+leg.txt <- c("< 3.5", "3.5 - 3.6","3.6 - 3.7", "3.7 - 3.8","> 3.8")
+
+# draw map
+map("county", "new jersey", col = colors[mosquito$colorBuckets], fill = TRUE, resolution = 0,
+    lty = 0, projection = "polyconic")
+map("county","new jersey", col = "white", fill = FALSE, add = TRUE, lty = 1, lwd = 0.2,
+    projection="polyconic", boundary=TRUE)
+title("Shannon H Diversity")
+legend("bottom", leg.txt, horiz = TRUE, fill = colors, cex=1)
+
